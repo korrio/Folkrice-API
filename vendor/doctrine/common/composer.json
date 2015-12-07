@@ -24,14 +24,13 @@
         "phpunit/phpunit": "~4.7"
     },
     "autoload": {
-        "psr-0": { "Doctrine\\Common\\": "lib/" }
+        "psr-4": {
+            "Doctrine\\Common\\": "lib/Doctrine/Common"
+        }
     },
     "extra": {
         "branch-alias": {
             "dev-master": "2.6.x-dev"
         }
-    },
-    "archive": {
-        "exclude": ["!vendor", "tests", "*phpunit.xml", ".travis.yml", "build.xml", "build.properties", "composer.phar"]
     }
 }

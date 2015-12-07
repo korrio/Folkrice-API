@@ -72,7 +72,7 @@
                   {{ $orderItem->quantity }}
                 </td>
                 <td>
-                  $ {{ number_format($orderItem->total, 2) }}
+                  {{ number_format($orderItem->total, 2) }} THB
                 </td>
               </tr>
             @endforeach
@@ -82,7 +82,7 @@
                 <strong>Total</strong>
               </td>
               <td>
-                <strong>$ {{ number_format($order->total, 2) }}</strong>
+                <strong>{{ number_format($order->total, 2) }} THB</strong>
               </td>
             </tr>
           </tbody>

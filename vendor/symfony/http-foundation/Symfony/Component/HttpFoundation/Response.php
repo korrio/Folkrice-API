@@ -138,7 +138,7 @@ class Response
         $this->setStatusCode($status);
         $this->setProtocolVersion('1.0');
         if (!$this->headers->has('Date')) {
-            $this->setDate(new \DateTime(null, new \DateTimeZone('UTC')));
+            $this->setDate(\DateTime::createFromFormat('U', time(), new \DateTimeZone('UTC')));
         }
     }
 
@@ -412,7 +412,7 @@ class Response
         }
 
         if (null === $text) {
-            $this->statusText = isset(self::$statusTexts[$code]) ? self::$statusTexts[$code] : '';
+            $this->statusText = isset(self::$statusTexts[$code]) ? self::$statusTexts[$code] : 'unknown status';
 
             return $this;
         }

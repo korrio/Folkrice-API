@@ -129,6 +129,11 @@ class Logger implements LoggerInterface
     protected $processors;
 
     /**
+     * @var bool
+     */
+    protected $microsecondTimestamps = true;
+
+    /**
      * @param string             $name       The logging channel
      * @param HandlerInterface[] $handlers   Optional stack of handlers, the first one in the array is called first, etc.
      * @param callable[]         $processors Optional array of processors
@@ -151,7 +156,7 @@ class Logger implements LoggerInterface
     /**
      * Pushes a handler on to the stack.
      *
-     * @param HandlerInterface $handler
+     * @param  HandlerInterface $handler
      * @return $this
      */
     public function pushHandler(HandlerInterface $handler)
@@ -180,7 +185,7 @@ class Logger implements LoggerInterface
      *
      * If a map is passed, keys will be ignored.
      *
-     * @param HandlerInterface[] $handlers
+     * @param  HandlerInterface[] $handlers
      * @return $this
      */
     public function setHandlers(array $handlers)
@@ -204,7 +209,7 @@ class Logger implements LoggerInterface
     /**
      * Adds a processor on to the stack.
      *
-     * @param callable $callback
+     * @param  callable $callback
      * @return $this
      */
     public function pushProcessor($callback)
@@ -240,9 +245,27 @@ class Logger implements LoggerInterface
     }
 
     /**
+     * Control the use of microsecond resolution timestamps in the 'datetime'
+     * member of new records.
+     *
+     * Generating microsecond resolution timestamps by calling
+     * microtime(true), formatting the result via sprintf() and then parsing
+     * the resulting string via \DateTime::createFromFormat() can incur
+     * a measurable runtime overhead vs simple usage of DateTime to capture
+     * a second resolution timestamp in systems which generate a large number
+     * of log events.
+     *
+     * @param bool $micro True to use microtime() to create timestamps
+     */
+    public function useMicrosecondTimestamps($micro)
+    {
+        $this->microsecondTimestamps = (bool) $micro;
+    }
+
+    /**
      * Adds a log record.
      *
-     * @param  integer $level   The logging level
+     * @param  int     $level   The logging level
      * @param  string  $message The log message
      * @param  array   $context The log context
      * @return Boolean Whether the record has been processed
@@ -272,13 +295,20 @@ class Logger implements LoggerInterface
             static::$timezone = new \DateTimeZone(date_default_timezone_get() ?: 'UTC');
         }
 
+        if ($this->microsecondTimestamps) {
+            $ts = \DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)), static::$timezone);
+        } else {
+            $ts = new \DateTime(null, static::$timezone);
+        }
+        $ts->setTimezone(static::$timezone);
+
         $record = array(
             'message' => (string) $message,
             'context' => $context,
             'level' => $level,
             'level_name' => $levelName,
             'channel' => $this->name,
-            'datetime' => \DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)), static::$timezone)->setTimezone(static::$timezone),
+            'datetime' => $ts,
             'extra' => array(),
         );
 
@@ -402,7 +432,7 @@ class Logger implements LoggerInterface
     /**
      * Gets the name of the logging level.
      *
-     * @param  integer $level
+     * @param  int    $level
      * @return string
      */
     public static function getLevelName($level)
@@ -432,7 +462,7 @@ class Logger implements LoggerInterface
     /**
      * Checks whether the Logger has a handler that listens on the given level
      *
-     * @param  integer $level
+     * @param  int     $level
      * @return Boolean
      */
     public function isHandling($level)

@@ -4,29 +4,45 @@ class AccountController
 extends BaseController
 {
   public function createAction() {
-    $email = Input::get("email");
-    $password = Hash::make(Input::get("password"));
 
-    $accountCreated = Account::where("email",$email)->first(); 
+    $validator = Validator::make(Input::all(), [
+      "email" => "required|exists:account,email",
+      'password' => 'required|alpha_dash|min:6'
+    ]);
 
-    if(!$accountCreated) {
-      $account = Account::create([
-        "email"    => $email,
-        "password" => $password
-      ]);
+    if ($validator->passes())
+    {
+      $email = Input::get("email");
+      $password = Hash::make(Input::get("password"));
 
-      return Response::json([
-        "status"  => "ok",
-        "token" => $password,
-        "account" => $account->toArray()
-      ]);
+      $accountCreated = Account::where("email",$email)->first(); 
 
+      if(!$accountCreated) {
+        $account = Account::create([
+          "email"    => $email,
+          "password" => $password
+        ]);
+
+        return Response::json([
+          "status"  => "ok",
+          "token" => $password,
+          "account" => $account->toArray()
+        ]);
+
+      } else {
+        return Response::json([
+          "status" => "error",
+          "message" => "Email is already registered"
+        ]);
+      }
     } else {
       return Response::json([
-        "status" => "error",
-        "message" => "Email is already registered"
-      ]);
+      "status" => "error",
+      "errors" => $validator->errors()->toArray()
+    ]);
     }
+
+    
     
   }
 
@@ -48,7 +64,8 @@ extends BaseController
 
       return Response::json([
         "status"  => "ok",
-        "account" => Auth::user()->toArray()
+        "account" => Auth::user()->toArray(),
+        "address" => AddressItem::where("account_id",$user->id)->get()->toArray()
       ]);
     }
 

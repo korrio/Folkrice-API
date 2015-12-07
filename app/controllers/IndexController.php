@@ -1,30 +1,32 @@
 <?php
 
-class IndexController
-extends BaseController
+class IndexController 
+extends BaseController 
 {
   public function indexAction()
   {
     return View::make("index");
   }
 
-  public function payAction() {
-  	$adapter = Gateway::driver('Paypal')->initialize(array(
-    'sandboxMode'     => true,
-    'successUrl'      => 'http://www.domain/foreground/success',
-    'cancelUrl'       => 'http://www.domain/foreground/cancel',
-    'backendUrl'      => 'http://www.domain/background/invoice/00001',
-    'merchantAccount' => 'idolkorrio@gmail.com',
-    'language'        => 'TH',
-    'currency'        => 'THB',
-    'invoice'         => uniqid(),
-    'purpose'         => 'Buy a beer.',
-    'amount'          => 100,
-    'remark'          => 'Short note'
-));
+  public function invoiceHtml($id)
+  {
+  	$order = Order::find($id);
+    return View::make("email/invoice", [
+      "order" => $order
+    ]);
+  }
 
-$generated = $adapter->render();
+  public function paypalAction()  {
+  	$adapter = Gateway::driver('Paypal');
 
-var_dump($generated);
+$adapter->setSandboxMode(true);
+
+$adapter->setMerchantAccount('idolkorrio@gmail.com');
+
+$adapter->setInvoice(00001);
+
+$result = $adapter->getFrontendResult();
+
+var_dump($result);
   }
 }

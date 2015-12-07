@@ -4,20 +4,25 @@ App::bind("Formativ\Billing\GatewayInterface", "Formativ\Billing\StripeGateway")
 App::bind("Formativ\Billing\DocumentInterface", "Formativ\Billing\PDFDocument");
 App::bind("Formativ\Billing\MessengerInterface", "Formativ\Billing\EmailMessenger");
 
-// Route::get("/pay",[
-//   "as" => "pay",
-//   "uses" => "IndexController@payAction"
-// ]);
+Route::get("/paypal",[
+  "as" => "paypal",
+  "uses" => "IndexController@paypalAction"
+]);
 
 Route::any("/", [
   "as"   => "index/index",
   "uses" => "IndexController@indexAction"
 ]);
 
+Route::get('order/{id}/invoice/index', 'IndexController@invoiceHtml');
+
 Route::any("category/index", [
   "as"   => "category/index",
   "uses" => "CategoryController@indexAction"
 ]);
+
+Route::get('product/{id}/nf', 'ProductController@nutritionFact');
+
 
 Route::get('product/{id}', 'ProductController@show');
 Route::get('product', 'ProductController@indexAction');
@@ -38,8 +43,11 @@ Route::any("account/create", [
 ]);
 
 Route::post('order/{id}/checkout', 'OrderController@checkout');
+Route::get('order/{id}/invoice', 'OrderController@invoice');
+
 
 Route::get('order/{id}', 'OrderController@show');
+
 Route::get('order', 'OrderController@indexAction');
 
 Route::any("order/index", [

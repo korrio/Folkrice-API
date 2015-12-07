@@ -19,14 +19,16 @@
         "php": ">=5.3.3"
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "~2.7",
         "symfony/event-dispatcher": "~2.1"
     },
     "suggest": {
         "symfony/event-dispatcher": ""
     },
     "autoload": {
-        "psr-0": { "Symfony\\Component\\Console\\": "" }
+        "psr-0": { "Symfony\\Component\\Console\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
     },
     "target-dir": "Symfony/Component/Console",
     "minimum-stability": "dev",

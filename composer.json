@@ -8,7 +8,9 @@
     "dompdf/dompdf"     : "dev-master",
     "fzaninotto/faker"  : "dev-master",
     "stripe/stripe-php" : "dev-master",
-    "teepluss/gateway": "1.*"
+    "teepluss/gateway": "1.*",
+    "anlutro/curl": "dev-master",
+    "teepluss/gateway": "1.0.0"
   },
   "autoload" : {
     "classmap" : [
@@ -27,16 +29,18 @@
     ]
   },
   "scripts" : {
-    "post-install-cmd" : [
-      "php artisan optimize"
-    ],
-    "post-update-cmd" : [
-      "php artisan clear-compiled",
-      "php artisan optimize"
-    ],
-    "post-create-project-cmd" : [
-      "php artisan key:generate"
-    ]
+    "post-install-cmd": [
+			"php artisan optimize"
+		],
+		"pre-update-cmd": [
+			"php artisan clear-compiled"
+		],
+		"post-update-cmd": [
+			"php artisan optimize"
+		],
+		"post-create-project-cmd": [
+			"php artisan key:generate"
+		]
   },
   "config" : {
     "preferred-install" : "dist"

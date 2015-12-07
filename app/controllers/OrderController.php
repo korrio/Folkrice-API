@@ -37,10 +37,74 @@ extends BaseController
     // $query->state = "checkout";
     // $query->save();
 
+    $s = array();
+
+    $s["order_id"] = $order_id;
+    $s["account_id"] = 12;
+    //$s["id"] = $address_id;
+    $s["first_name"] = "Thana";
+    $s["last_name"] = "Ngoen";
+    $s["address_name"] = "บริษัท อควาริโอ จำกัด";
+    $s["address_no"] = "77/545";
+    $s["moo"] = "12";
+    $s["soi"] = "มัยลาภ";
+    $s["road"] = "ประเสริฐมนูญกิจ";
+    $s["province"] = 1;
+    $s["district"] = 1;
+    $s["sub_district"] = 1;
+    $s["post_code"] = "10230";
+    $s["is_default"] = true;
 
     $the_order["state"] = "checkout";
-    $the_order["shipping"] = $inputs;
-    return $the_order;
+    //$the_order["shipping"] = $s;
+
+    $validator = Validator::make($s, [
+       'post_code' => 'required|min:5',
+      'province' => 'required',
+      'district' => 'required',
+      'sub_district' => 'required'
+    ]);
+
+    if($validator->passes()) {
+      $addressItem = AddressItem::create($s);
+
+    //save address to address list return -> address id
+      // $address = Address::create([
+      //   //"account_id" => Input::get("account")
+      //   "account_id" => 12
+      // ]);
+
+      $the_order["shipping"] = $addressItem->toArray();
+
+      return $the_order;
+    } else {
+      return Response::json([
+        "status" => "error",
+        "errors" => $validator->errors()->toArray()
+      ]);
+    }
+
+    
+
+      // try
+      // {
+      //   $items = json_decode(Input::get("shipping"));
+      // }
+      // catch (Exception $e)
+      // {
+      //   return Response::json([
+      //     "status" => "error",
+      //     "errors" => [
+      //       "items" => [
+      //         "Invalid items format."
+      //       ]
+      //     ]
+      //   ]);
+      // }
+
+    //bind address id with order($id) and account($id)
+
+    
   }
 
   public static function show($order_id)
@@ -129,6 +193,13 @@ extends BaseController
     return $the_order;
   }
 
+  public function invoice($id) {
+    $order = Order::find($id);
+    $document = $this->document->create($order);
+    header("Content-Type: application/pdf");
+    return Response::download($document, null);
+  }
+
   
 
   public static function indexAction()
@@ -207,7 +278,7 @@ extends BaseController
         $total += $orderItem->quantity * $orderItem->price;
       }
 
-      // payment gateway 
+      // payment gateway algorithm here !
 
       // $result = $this->gateway->pay(
       //   Input::get("number"),
@@ -236,13 +307,16 @@ extends BaseController
       return Response::json([
         "status" => "ok",
         "state" => "basket",
+        "invoice" => $document,
         "order"  => $order->toArray()
       ]);
-    }
-
-    return Response::json([
+    } else {
+      return Response::json([
       "status" => "error",
       "errors" => $validator->errors()->toArray()
     ]);
+    }
+
+    
   }
 }

@@ -19,7 +19,6 @@
         "php": ">=5.3.3"
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "~2.7",
         "symfony/dependency-injection": "~2.0,>=2.0.5"
     },
     "suggest": {
@@ -27,7 +26,10 @@
         "symfony/http-kernel": ""
     },
     "autoload": {
-        "psr-0": { "Symfony\\Component\\EventDispatcher\\": "" }
+        "psr-0": { "Symfony\\Component\\EventDispatcher\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
     },
     "target-dir": "Symfony/Component/EventDispatcher",
     "minimum-stability": "dev",

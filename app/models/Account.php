@@ -35,6 +35,11 @@ implements UserInterface, RemindableInterface
     return $this->hasMany("Order");
   }
 
+  public function address()
+  {
+    return $this->hasMany("Address");
+  }
+
   public function setRememberToken($token) {
     $this->token = $token;
   }

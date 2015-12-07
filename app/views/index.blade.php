@@ -105,7 +105,7 @@
                   />
                 </td>
                 <td class="product">
-                  @{{ product.total }}
+                  @{{ product.total }} ฿
                 </td>
                 <td class="product">
                   <a
@@ -150,7 +150,7 @@
                     class="pull-left btn btn-default"
                     ng-click="basket.authenticate()"
                   >
-                    Authenticate
+                    Login
                   </button>
                 </td>
               </tr>

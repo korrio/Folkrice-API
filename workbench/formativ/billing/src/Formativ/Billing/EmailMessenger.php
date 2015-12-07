@@ -15,7 +15,7 @@ implements MessengerInterface
     Mail::send("email/wrapper", [], function($message) use ($order, $document)
     {
       $message->subject("Your invoice!");
-      $message->from("info@example.com", "Laravel 4 E-Commerce");
+      $message->from("folkrice.th@gmail.com", "Laravel 4 E-Commerce");
       $message->to($order->account->email);
 
       $message->attach($document, [
