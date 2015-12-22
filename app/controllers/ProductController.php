@@ -136,4 +136,25 @@ extends BaseController
 
     return $query->get();
   }
+
+  public function show2($id)
+  {
+    //$query    = Product::with(["category",""]);
+    $query    = Product::with(["category"]);
+    $category = Input::get("category");
+
+    if ($query)
+    {
+      if(is_numeric($id)) {
+        return $query->where("id", $id)->get();
+      } else {
+        if($category)
+          return $query->where("category_id", $category)->get();
+        else
+          return $query->get();
+      }
+    }
+
+    return $query->get();
+  }
 }

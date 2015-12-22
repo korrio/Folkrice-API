@@ -26,6 +26,7 @@ Route::get('product/{id}/nf', 'ProductController@nutritionFact');
 
 Route::get('product/{id}', 'ProductController@show');
 Route::get('product', 'ProductController@indexAction');
+Route::get('product/list', 'ProductController@show2');
 
 Route::any("product/index", [
   "as"   => "product/index",

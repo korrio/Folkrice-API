@@ -6,7 +6,7 @@ extends BaseController
   public function createAction() {
 
     $validator = Validator::make(Input::all(), [
-      "email" => "required|exists:account,email",
+   //   "email" => "required|exists:account,email",
       'password' => 'required|alpha_dash|min:6'
     ]);
 
