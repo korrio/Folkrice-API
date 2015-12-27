@@ -26,7 +26,8 @@ Route::get('product/{id}/nf', 'ProductController@nutritionFact');
 
 Route::get('product/{id}', 'ProductController@show');
 Route::get('product', 'ProductController@indexAction');
-Route::get('product/list', 'ProductController@show2');
+Route::get('products', 'ProductController@show2');
+Route::get('productss', 'ProductController@show3');
 
 Route::any("product/index", [
   "as"   => "product/index",
@@ -38,6 +39,9 @@ Route::any("account/authenticate", [
   "uses" => "AccountController@authenticateAction"
 ]);
 
+Route::any('account/fbAuth','AccountController@facebookLogin');
+
+
 Route::any("account/create", [
   "as"   => "account/create",
   "uses" => "AccountController@createAction"
@@ -45,6 +49,7 @@ Route::any("account/create", [
 
 Route::post('order/{id}/checkout', 'OrderController@checkout');
 Route::get('order/{id}/invoice', 'OrderController@invoice');
+Route::post('order/{id}/submit', 'OrderController@submit');
 
 
 Route::get('order/{id}', 'OrderController@show');

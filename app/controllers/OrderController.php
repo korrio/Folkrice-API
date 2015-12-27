@@ -22,61 +22,70 @@ extends BaseController
     $this->messenger = $messenger;
   }
 
+
+
   public function checkout($order_id)
   {
     $inputs = Input::get();
-    $the_order = OrderController::show($order_id);
-
-    // $query = Order::with([
-    //   "account",
-    //   "orderItems",
-    //   "orderItems.product",
-    //   "orderItems.product.category"
-    // ]);
-    // $query->where("id", $order_id);
-    // $query->state = "checkout";
-    // $query->save();
-
+    
+    //$the_order = Order::find($order_id);
+    
     $s = array();
 
-    $s["order_id"] = $order_id;
-    $s["account_id"] = 12;
-    //$s["id"] = $address_id;
-    $s["first_name"] = "Thana";
-    $s["last_name"] = "Ngoen";
-    $s["address_name"] = "บริษัท อควาริโอ จำกัด";
-    $s["address_no"] = "77/545";
-    $s["moo"] = "12";
-    $s["soi"] = "มัยลาภ";
-    $s["road"] = "ประเสริฐมนูญกิจ";
-    $s["province"] = 1;
-    $s["district"] = 1;
-    $s["sub_district"] = 1;
-    $s["post_code"] = "10230";
+    $b = $inputs;
+
+    //print_r($s);
+
+    // $s["order_id"] = $order_id;
+    // $s["account_id"] = $the_order->account_id;
+    $s["id"] = 1;
+    $s["first_name"] = $b["customer"]["first_name"];
+    $s["last_name"] = $b["customer"]["last_name"];
+    $s["email"] = $b["customer"]["email"];
+    $s["phone"] = $b["customer"]["phone"];
+    $s["address_name"] = $b["ship_to"]["first_name"] . " " . $b["ship_to"]["last_name"] . " (note) " . $b["ship_to"]["note"];
+    $s["address_no"] = $b["ship_to"]["address_1"];
+    $s["moo"] = "";
+    $s["soi"] = "";
+    $s["road"] = "";
+    $s["province"] = $b["ship_to"]["province"];
+    $s["district"] = $b["ship_to"]["district"];
+    $s["sub_district"] = $b["ship_to"]["sub_district"];
+    $s["post_code"] = $b["ship_to"]["postcode"];
     $s["is_default"] = true;
 
-    $the_order["state"] = "checkout";
+
+    //$the_order["state"] = "checkout";
     //$the_order["shipping"] = $s;
 
-    $validator = Validator::make($s, [
-       'post_code' => 'required|min:5',
-      'province' => 'required',
-      'district' => 'required',
-      'sub_district' => 'required'
-    ]);
-
-    if($validator->passes()) {
+    // $validator = Validator::make($s, [
+    //    'post_code' => 'required|min:5',
+    //   'province' => 'required',
+    //   'district' => 'required',
+    //   'sub_district' => 'required'
+    // ]);
+     if(true) {
+    // if($validator->passes()) {
       $addressItem = AddressItem::create($s);
-
+      //$addressItem = DB::table('address_item')->insert($s);
     //save address to address list return -> address id
       // $address = Address::create([
       //   //"account_id" => Input::get("account")
-      //   "account_id" => 12
+      //   "account_id" => $the_order->account_id
       // ]);
 
-      $the_order["shipping"] = $addressItem->toArray();
+      if($addressItem != null) {
+        $order = Order::find($order_id);
+        $order->state = 'checkout';
+        $order->save();
 
-      return $the_order;
+        $the_order = OrderController::showInternal($order_id)->first();
+        $the_order["shipping"] = $addressItem->toArray();
+      }
+
+      
+
+      return Response::json($the_order);
     } else {
       return Response::json([
         "status" => "error",
@@ -107,6 +116,32 @@ extends BaseController
     
   }
 
+  public static function showInternal($order_id)
+  {
+    $query = Order::with([
+      "account",
+      "orderItems",
+      "orderItems.product",
+      "orderItems.product.category"
+    ]);
+
+    $account = Input::get("account");
+
+    if ($query)
+    {
+      if(is_numeric($order_id)) {
+        $query->where("id", $order_id);
+        return $query->get();
+
+      } else {
+        if($account)
+          return $query->where("account_id", $account);
+        else
+          return $query->get();
+      }
+    }
+  }
+
   public static function show($order_id)
   {
     $query = Order::with([
@@ -122,6 +157,8 @@ extends BaseController
     {
       if(is_numeric($order_id)) {
         $query->where("id", $order_id);
+
+
       } else {
         if($account)
           $query->where("account_id", $account);
@@ -132,33 +169,48 @@ extends BaseController
 
     $orders = $query->get();
 
+    
+
     if($orders->count() == 1) {
       $sub_total = 0;
+
+      //echo "bbb";
 
       $weight_total = 0;
 
       $delivery_total = 0;
 
-      $the_order = null;
+     
 
-      foreach ($orders as $order) {
-        $the_order = $order;
-        foreach($order->order_items as $item) {
-          $sub_total += $item->quantity * $item->price;
+      
+        //echo "ccc";
+        $order = $orders->first();
+
+        $order->order_items->each(function ($item) {
+
+          //echo "ddd";
+
+          $item->picture = Helpers::getProductById($item->product_id);
+          //$sub_total += $item->quantity * $item->price;
           $product = Product::where("id",$item->product_id)->first();
+
           //print_r($product);
-          if($product)
-            $weight_total += $product->weight;
-        }
-      }
+          //if($product)
+            //$weight_total += $product->weight;
+
+        }); 
+
+      
+
+
 
       //var_dump($order);
 
-      if($the_order) {
-        $the_order->weight_total = $weight_total;
+      if($order) {
+        $order->weight_total = $weight_total;
       
       $weight_kg_total = $weight_total/1000;
-      $the_order->weight_kg_total = $weight_kg_total;
+      $order->weight_kg_total = $weight_kg_total;
 
       //echo $weight_kg_total;
 
@@ -167,14 +219,18 @@ extends BaseController
       else
         $delivery_total = 0;
 
-      $total = $the_order->total;
-      $the_order->sub_total = $total;
-      $the_order->delivery_total = $delivery_total;
+      $total = $order->total;
+      $order->sub_total = $total;
+      $order->delivery_total = $delivery_total;
 
-      $the_order->discount_total = 0;
+      $order->discount_total = 0;
       
-      $the_order->total_price = (int)$total + (int)$delivery_total - $the_order->discount;
-      $the_order->parcel = Helpers::getParcel(floor($weight_kg_total),ceil($weight_kg_total),1);
+      $order->total_price = (int)$total + (int)$delivery_total - $order->discount;
+      $order->parcel = Helpers::getParcel(floor($weight_kg_total),ceil($weight_kg_total),1);
+
+      //echo "eee";
+
+      return Response::json($order->toArray());
 
       }
     } else {
@@ -190,7 +246,26 @@ extends BaseController
 
     //print_r($parcel);
 
-    return $the_order;
+    return $orders;
+  }
+
+  public function submit($order_id)
+  {
+    $inputs = Input::get();
+    $the_order = OrderController::showInternal($order_id);
+
+    $inputs["name"];
+    $inputs["account_id"];
+    $inputs["method"];
+    $inputs["amount"];
+    $inputs["time"];
+    $inputs["image"];
+
+    // $the_order->state = "processing";
+    // $the_order->save();
+
+    $a = array("order_id"=>(int)$order_id,"message"=>"ได้รับการโอนเงินแล้ว กรุณาตรวจสอบอีเมลล์ของท่าน");
+    return Response::json($a); 
   }
 
   public function invoice($id) {
@@ -211,18 +286,43 @@ extends BaseController
       "orderItems.product.category"
     ]);
 
+    
+
     $account = Input::get("account");
+
+    
+
     $android = Input::get("android");
 
     if ($account)
     {
-      $myaccount = Account::where("id",$account);
+      $myaccount = Account::where("id",$account)->get();
+      //$myaccount->address = $s;
       $query->where("account_id", $account);
     }
     if($android == "1") {
-      $a = array("account"=>$myaccount->get()->toArray(),"orders"=>$query->get()->toArray());
+      $orderObj = $query->get();
+      $orderObj->each(function ($item) {
+        $s = array();
+    $s["first_name"] = "Thana";
+    $s["last_name"] = "Ngoen";
+    $s["address_name"] = "บริษัท อควาริโอ จำกัด";
+    $s["address_no"] = "77/545";
+    $s["moo"] = "12";
+    $s["soi"] = "มัยลาภ";
+    $s["road"] = "ประเสริฐมนูญกิจ";
+    $s["province"] = 1;
+    $s["district"] = 1;
+    $s["sub_district"] = 1;
+    $s["post_code"] = "10230";
+    $s["is_default"] = true;
+        $item->address = $s;
+      }); 
+
+      $a = array("orders"=>$orderObj->toArray());
       return $a;
     } else {
+      //$query->address = $s;
       return $query->get();
     }
     
@@ -303,6 +403,31 @@ extends BaseController
 
       $document = $this->document->create($order);
       $this->messenger->send($order, $document);
+
+      //$the_order = $order;
+
+      $the_order = OrderController::showInternal($order->id);
+
+      $order->order_items->each(function ($item) {
+          $item->product->picture = Helpers::getProductById($item->product_id);
+        }); 
+
+      
+
+      // "weight_total": 3400,
+      // "weight_kg_total": 3.4,
+      // "sub_total": 500,
+      // "delivery_total": 80,
+      // "discount_total": 0,
+      // "total_price": 580,
+
+      // $order->weight_total = $the_order->weight_total;
+      // $order->weight_kg_total = $the_order->weight_kg_total;
+      // $order->sub_total = $the_order->sub_total;
+      // $order->delivery_total = $the_order->delivery_total;
+      // $order->discount_total = $the_order->discount_total;
+      // $rder->total_price = $the_order->total_price;
+
 
       return Response::json([
         "status" => "ok",

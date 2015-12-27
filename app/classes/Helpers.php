@@ -2,6 +2,62 @@
 
 class Helpers {
 
+  public static function getProductById($id) {
+        $b[0] = array(
+         
+            "image"=>"http://api.folkrice.com/img/black_700.png",
+            "thumb"=>"http://api.folkrice.com/img/black_700_thumb.png"
+        );
+
+    $b[1] = array(
+        
+            "image"=>"http://api.folkrice.com/img/red_700.png",
+            "thumb"=>"http://api.folkrice.com/img/red_700_thumb.png"
+        );
+
+    $b[2] = array(
+         
+            "image"=>"http://api.folkrice.com/img/brown_700.png",
+            "thumb"=>"http://api.folkrice.com/img/brown_700_thumb.png"
+        );
+
+    $b[3] = array(
+           
+            "image"=>"http://api.folkrice.com/img/white_700.png",
+            "thumb"=>"http://api.folkrice.com/img/white_700_thumb.png"
+        );
+
+ $b[4] = array(
+         
+            "image"=>"http://api.folkrice.com/img/black_2000.png",
+            "thumb"=>"http://api.folkrice.com/img/black_2000_thumb.png"
+        );
+
+    $b[5] = array(
+        
+            "image"=>"http://api.folkrice.com/img/red_2000.png",
+            "thumb"=>"http://api.folkrice.com/img/red_2000_thumb.png"
+        );
+
+    $b[6] = array(
+         
+            "image"=>"http://api.folkrice.com/img/brown_2000.png",
+            "thumb"=>"http://api.folkrice.com/img/brown_2000_thumb.png"
+        );
+
+    $b[7] = array(
+           
+            "image"=>"http://api.folkrice.com/img/white_2000.png",
+            "thumb"=>"http://api.folkrice.com/img/white_2000_thumb.png"
+        );
+
+        $id = (int)$id - 1;
+        if($id < sizeof($b))
+            return $b[(int)$id];
+        else
+            return null;
+    }
+
 	public static function startsWith($haystack, $needle) {
     // search backwards starting from haystack length characters from the end
     return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
@@ -97,5 +153,86 @@ class Helpers {
       }
     }
     return $b;
+  }
+
+  public static function fbAuth($access_token) {
+
+    $dbConnect = Helpers::dbConnect();
+    
+    // Check connection
+    if (mysqli_connect_errno($dbConnect)) {
+        exit(mysqli_connect_error());
+    }
+
+    
+    $client_id = "812207955571269";
+    $client_secret = "7b024358ac126926363f83e05dc31c83";
+
+    $redirect_uri = "http://www.folkrice.com/import.php?type=facebook";
+
+    //echo "0";
+
+    if (!empty($access_token)) {
+        //echo "1";
+                $getApiUrl = "https://graph.facebook.com/me?access_token={$access_token}&fields=email,gender,name,cover,picture.width(720).height(720)";
+                $getApi = @file_get_contents($getApiUrl);
+                $getJson = @json_decode($getApi, true);
+                
+                if (!empty($getJson['name']) && !empty($getJson['id'])) {
+                  //echo "2";
+                    $getJson['name'] = $getJson['name'];
+                    $getJson['id'] = $getJson['id'];
+                    $getJson['username'] = 'fb_' . $getJson['id'];
+                    
+                    if (!empty($getJson['email'])) {
+                        $getJson['email'] = $getJson['email'];
+                    } else {
+                        $getJson['email'] = $getJson['username'] . '@facebook.com';
+                    }
+                    
+                    if (!empty($getJson['gender'])) {
+                        $getJson['gender'] = $getJson['gender'];
+                    } else {
+                        $getJson['gender'] = 'male';
+                    }
+                    
+                    $getJson['password'] = md5($getJson['email']);
+                    
+                    $query_one = "SELECT * FROM account WHERE (email='" . $getJson['email'] . "')";
+                    $sql_query_one = mysqli_query($dbConnect, $query_one);
+                    
+                    if (($sql_numrows_one = mysqli_num_rows($sql_query_one)) == 1) {
+                      //echo "3";
+                        $sql_fetch_one = mysqli_fetch_assoc($sql_query_one);
+                        
+                        //$res['user_id'] = $sql_fetch_one['id'];
+                        //$res['user_pass'] = $sql_fetch_one['password'];
+
+                                    $user = Account::find($sql_fetch_one['id']);
+       
+
+                        $res["state"] = "login";
+                        $res["user_info"] = $user;
+                        return $res;
+                        
+                        //return $user;
+
+                        //setcookie('sk_u_i', $_SESSION['user_id'], time() + (60 * 60 * 24 * 7));
+                        //setcookie('sk_u_p', $_SESSION['user_pass'], time() + (60 * 60 * 24 * 7));
+                    } else {
+
+                         $user = Account::where("id",12)->get()->first()->toArray();
+       
+
+                        $res["state"] = "register";
+                        $res["user_info"] = $user;
+                        return $res;
+
+                        
+                        //register
+                    }
+                }
+            }
+            
   }
 }

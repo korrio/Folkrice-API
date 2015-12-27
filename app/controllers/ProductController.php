@@ -137,24 +137,85 @@ extends BaseController
     return $query->get();
   }
 
-  public function show2($id)
+  public function show2()
   {
     //$query    = Product::with(["category",""]);
     $query    = Product::with(["category"]);
     $category = Input::get("category");
 
+    $productsObj = $query->get();
+    $productsArray = $query->get()->toArray();
+
+    //$products["nf"] = array("asdf"=>"fdsa");
+
+    //$result = array();
+
+     
+
+    //print_r($result);
+
+    //return Response::json($productsObj->toArray());
+
     if ($query)
     {
-      if(is_numeric($id)) {
-        return $query->where("id", $id)->get();
-      } else {
-        if($category)
-          return $query->where("category_id", $category)->get();
-        else
-          return $query->get();
-      }
+
+        //$query->where("id", $id)->get();
+        $productsObj->each(function ($item) {
+          $item->picture = Helpers::getProductById($item->id);
+        }); 
+        return $productsObj;
+      
     }
 
     return $query->get();
   }
+
+  public function show3()
+  {
+    //$query    = Product::with(["category",""]);
+    $query    = Product::with(["category"]);
+    $category = Input::get("category");
+
+    $productsObj = $query->get();
+    $productsArray = $query->get()->toArray();
+
+    //$products["nf"] = array("asdf"=>"fdsa");
+
+    //$result = array();
+
+     
+
+    //print_r($result);
+
+    //return Response::json($productsObj->toArray());
+
+    if ($query)
+    {
+
+        //$query->where("id", $id)->get();
+        $productsObj->each(function ($item) {
+          $picture = Helpers::getProductById($item->id);
+          if($picture != null )
+            $item->picture = $picture;
+          else
+            $item->picture = array("image"=>"","thumb"=>"");
+        }); 
+
+        $res = array("status"=>"1",
+          "page"=>1,
+          "per_page"=>10,
+          "pages"=>1,
+          "total"=>sizeof($productsObj->toArray()),
+          "products"=>$productsObj->toArray());
+        return Response::json($res);
+
+        //return $productsObj;
+
+      
+    }
+
+    return $query->get();
+  }
+
+  
 }

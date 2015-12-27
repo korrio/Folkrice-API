@@ -3,6 +3,25 @@
 class AccountController
 extends BaseController
 {
+  public function facebookLogin() {
+    $params = Input::all();
+    $user = Helpers::fbAuth($params['access_token']);
+    if($user != null){
+      //$authToken = AuthToken::create($user['user_info']);
+      //$publicToken = AuthToken::publicToken($authToken);
+      return Response::json(array('status' => '1',
+                    'message' => 'Success Facebook Auth',
+                    //'token' => $publicToken,
+                    'state' => $user['state'],
+                                    'user' => $user['user_info']));
+    }else{
+      return Response::json(array('status' => '0',
+                    'message' => 'Wrong access_token',
+                    'state' => 'wrong_access_token',
+                                    'user' => $user));
+    }
+  }
+
   public function createAction() {
 
     $validator = Validator::make(Input::all(), [
