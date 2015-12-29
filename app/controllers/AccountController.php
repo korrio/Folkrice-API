@@ -12,8 +12,11 @@ extends BaseController
       return Response::json(array('status' => '1',
                     'message' => 'Success Facebook Auth',
                     //'token' => $publicToken,
+
                     'state' => $user['state'],
-                                    'user' => $user['user_info']));
+                                    'user' => $user['user_info'],
+                                    'fb_graph' => $user['getJson']
+                                    ));
     }else{
       return Response::json(array('status' => '0',
                     'message' => 'Wrong access_token',

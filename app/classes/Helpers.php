@@ -50,12 +50,14 @@ class Helpers {
             "image"=>"http://api.folkrice.com/img/white_2000.png",
             "thumb"=>"http://api.folkrice.com/img/white_2000_thumb.png"
         );
-
+    if($id >= 1) {
         $id = (int)$id - 1;
         if($id < sizeof($b))
             return $b[(int)$id];
         else
             return null;
+    }
+        
     }
 
 	public static function startsWith($haystack, $needle) {
@@ -208,11 +210,12 @@ class Helpers {
                         //$res['user_id'] = $sql_fetch_one['id'];
                         //$res['user_pass'] = $sql_fetch_one['password'];
 
-                                    $user = Account::find($sql_fetch_one['id']);
+                                    $user = Account::find((int)$sql_fetch_one['id']);
        
 
                         $res["state"] = "login";
-                        $res["user_info"] = $user;
+                        $res["user_info"] = $user->toArray();
+                        $res["getJson"] = $getJson;
                         return $res;
                         
                         //return $user;
@@ -221,11 +224,20 @@ class Helpers {
                         //setcookie('sk_u_p', $_SESSION['user_pass'], time() + (60 * 60 * 24 * 7));
                     } else {
 
-                         $user = Account::where("id",12)->get()->first()->toArray();
+                        $account = Account::create([
+                          "email"    => $getJson['email'],
+                          "password" => Hash::make(Input::get("password")),
+                          "fb_id" => (int)$getJson['id'],
+                          "fb_token" => $access_token
+                        ]);
+                    
+
+                         $user = $account;
        
 
                         $res["state"] = "register";
-                        $res["user_info"] = $user;
+                        $res["user_info"] = $user->toArray();
+                        $res["getJson"] = $getJson;
                         return $res;
 
                         

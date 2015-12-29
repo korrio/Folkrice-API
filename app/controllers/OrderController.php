@@ -76,16 +76,21 @@ extends BaseController
 
       if($addressItem != null) {
         $order = Order::find($order_id);
-        $order->state = 'checkout';
-        $order->save();
+        if($order != null) {
+          $order->state = 'checkout';
+          $order->payment_method = $b["payment"]["method"];
+          $order->save();
 
-        $the_order = OrderController::showInternal($order_id)->first();
-        $the_order["shipping"] = $addressItem->toArray();
+          $the_order = OrderController::showInternal($order_id)->first();
+          $the_order["shipping"] = $addressItem->toArray();
+          
+          return Response::json($the_order);
+        } 
       }
 
       
 
-      return Response::json($the_order);
+      
     } else {
       return Response::json([
         "status" => "error",
@@ -169,69 +174,51 @@ extends BaseController
 
     $orders = $query->get();
 
-    
-
     if($orders->count() == 1) {
-      $sub_total = 0;
+      
 
-      //echo "bbb";
+        $order = $orders->first();
+
+         $sub_total = 0;
 
       $weight_total = 0;
 
       $delivery_total = 0;
 
-     
+        foreach($order->order_items as $item) {
 
-      
-        //echo "ccc";
-        $order = $orders->first();
-
-        $order->order_items->each(function ($item) {
-
-          //echo "ddd";
+         
 
           $item->picture = Helpers::getProductById($item->product_id);
-          //$sub_total += $item->quantity * $item->price;
+          $sub_total += $item->quantity * $item->price;
           $product = Product::where("id",$item->product_id)->first();
 
-          //print_r($product);
-          //if($product)
-            //$weight_total += $product->weight;
+          if($product)
+            $weight_total += $product->weight;
 
-        }); 
-
-      
-
-
-
-      //var_dump($order);
+        }
 
       if($order) {
         $order->weight_total = $weight_total;
       
-      $weight_kg_total = $weight_total/1000;
-      $order->weight_kg_total = $weight_kg_total;
+        $weight_kg_total = $weight_total/1000;
+        $order->weight_kg_total = $weight_kg_total;
 
-      //echo $weight_kg_total;
+        if($weight_kg_total > 0)
+          $delivery_total = Helpers::getParcelCost(floor($weight_kg_total),ceil($weight_kg_total),1);
+        else
+          $delivery_total = 0;
 
-      if($weight_kg_total > 0)
-        $delivery_total = Helpers::getParcelCost(floor($weight_kg_total),ceil($weight_kg_total),1);
-      else
-        $delivery_total = 0;
+        $total = $order->total;
+        $order->sub_total = $total;
+        $order->delivery_total = $delivery_total;
 
-      $total = $order->total;
-      $order->sub_total = $total;
-      $order->delivery_total = $delivery_total;
-
-      $order->discount_total = 0;
-      
-      $order->total_price = (int)$total + (int)$delivery_total - $order->discount;
-      $order->parcel = Helpers::getParcel(floor($weight_kg_total),ceil($weight_kg_total),1);
-
-      //echo "eee";
+        $order->discount_total = 0;
+        
+        $order->total_price = (int)$total + (int)$delivery_total - $order->discount;
+        $order->parcel = Helpers::getParcel(floor($weight_kg_total),ceil($weight_kg_total),1);
 
       return Response::json($order->toArray());
-
       }
     } else {
       return OrderController::indexAction();
@@ -286,13 +273,10 @@ extends BaseController
       "orderItems.product.category"
     ]);
 
-    
-
     $account = Input::get("account");
-
-    
-
     $android = Input::get("android");
+
+
 
     if ($account)
     {
@@ -300,6 +284,7 @@ extends BaseController
       //$myaccount->address = $s;
       $query->where("account_id", $account);
     }
+
     if($android == "1") {
       $orderObj = $query->get();
       $orderObj->each(function ($item) {
@@ -318,12 +303,19 @@ extends BaseController
     $s["is_default"] = true;
         $item->address = $s;
       }); 
-
       $a = array("orders"=>$orderObj->toArray());
       return $a;
     } else {
-      //$query->address = $s;
       return $query->get();
+      // foreach ($orders as $order) {
+      //     //echo $order->id . " ";
+      //     if($order->id >= 1) {
+      //       $order = OrderController::show($order->id);
+      //       $the_orders[] = $order;
+      //     }
+          
+      // }
+      // return Response::json(array("orders"=>$the_orders));
     }
     
   }
@@ -358,6 +350,8 @@ extends BaseController
       }
 
       $total = 0;
+      $weight_total = 0;
+
 
       foreach ($items as $item)
       {
@@ -376,6 +370,9 @@ extends BaseController
         $product->save();
 
         $total += $orderItem->quantity * $orderItem->price;
+
+        if($product)
+            $weight_total += $product->weight;
       }
 
       // payment gateway algorithm here !
@@ -407,6 +404,15 @@ extends BaseController
       //$the_order = $order;
 
       $the_order = OrderController::showInternal($order->id);
+
+      if($order) {
+          $weight_kg_total = $weight_total / 1000;
+          $delivery_total = Helpers::getParcelCost(floor($weight_kg_total),ceil($weight_kg_total),1);
+          $order->sub_total = $total;
+          $order->delivery_total = $delivery_total;
+          $order->total_price = $total + $delivery_total;
+          $order->save();
+      }
 
       $order->order_items->each(function ($item) {
           $item->product->picture = Helpers::getProductById($item->product_id);
