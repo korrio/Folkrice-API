@@ -18,7 +18,7 @@ $query = http_build_query($data);
 
 // echo $query;
 
-$root = 'http://localhost/~kittipon/elephantio';
+$root = 'http://api.folkrice.com/folkchat';
 $notifyWebClientUrl = $root.'/elephant.io/example/socket.io/1.x/emitter/client.php?'.$query;
 
 echo $notifyWebClientUrl;
@@ -42,7 +42,7 @@ echo $notifyWebClientUrl;
 
   $resp = get_content($notifyWebClientUrl);
 
-  var_dump($resp);
+  // var_dump($resp);
 
 
 // }

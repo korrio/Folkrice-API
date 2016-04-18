@@ -403,16 +403,20 @@ extends BaseController
 
       //$the_order = $order;
 
-      $the_order = OrderController::showInternal($order->id);
-
       if($order) {
           $weight_kg_total = $weight_total / 1000;
-          $delivery_total = Helpers::getParcelCost(floor($weight_kg_total),ceil($weight_kg_total),1);
+          $min = floor($weight_kg_total);
+          $max = ceil($weight_kg_total);
+          $delivery_total = Helpers::getParcelCost($min,$max,1);
           $order->sub_total = $total;
           $order->delivery_total = $delivery_total;
           $order->total_price = $total + $delivery_total;
           $order->save();
       }
+
+      //$the_order = OrderController::showInternal($order->id);
+
+      
 
       $order->order_items->each(function ($item) {
           $item->product->picture = Helpers::getProductById($item->product_id);
@@ -439,6 +443,9 @@ extends BaseController
         "status" => "ok",
         "state" => "basket",
         "invoice" => $document,
+        "total_weight" => $weight_total,
+        "min" => $min,
+        "max" => $max,
         "order"  => $order->toArray()
       ]);
     } else {

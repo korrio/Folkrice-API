@@ -4,6 +4,8 @@ App::bind("Formativ\Billing\GatewayInterface", "Formativ\Billing\StripeGateway")
 App::bind("Formativ\Billing\DocumentInterface", "Formativ\Billing\PDFDocument");
 App::bind("Formativ\Billing\MessengerInterface", "Formativ\Billing\EmailMessenger");
 
+//Route::get('/{slug}', array('as' => 'page.show', 'uses' => 'PageController@show'));
+
 Route::get("/paypal",[
   "as" => "paypal",
   "uses" => "IndexController@paypalAction"
@@ -40,6 +42,7 @@ Route::any("account/authenticate", [
 ]);
 
 Route::any('account/fbAuth','AccountController@facebookLogin');
+Route::any('account/{id}','AccountController@show');
 
 
 Route::any("account/create", [

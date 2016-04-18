@@ -61,8 +61,10 @@ extends BaseController
     foreach($json as $k => $v) {
     	if(Helpers::startsWith($k,"nf_") && !Helpers::startsWith($k,"nf_serving") && $v != null) {
     		$aa = array();
-    		$title = str_replace("nf", "", $k);
-    		$name = str_replace("_", " ", $title);
+    		$title = str_replace("nf_", "", $k);
+        $name = str_replace("_", " ", $title);
+        $name = str_replace("total ", "", $name);
+        $name = str_replace("from ", "", $name);
     		$title = ucwords(strtolower($name));
     		$aa["title"] = ltrim($title);
     		$aa["name"] = ltrim($name);
@@ -207,6 +209,12 @@ extends BaseController
           "pages"=>1,
           "total"=>sizeof($productsObj->toArray()),
           "products"=>$productsObj->toArray());
+
+        // $headers = [
+        //     'Access-Control-Allow-Methods'=> 'POST, GET, OPTIONS, PUT, DELETE',
+        //     'Access-Control-Allow-Headers'=> 'X-Requested-With, Content-Type, X-Auth-Token, Origin, Authorization'
+        // ];
+
         return Response::json($res);
 
         //return $productsObj;

@@ -25,6 +25,23 @@ extends BaseController
     }
   }
 
+  public function show($userId) {
+    $account = Account::find($userId); 
+    $addressItem = AddressItem::where("account_id",$userId)->get()
+    //->first()
+    ->toArray();
+    if($account) {
+      return Response::json(array('status' => '1',
+                    'account' => $account->toArray(),
+    "address" => $addressItem));
+    } else {
+      return Response::json(array('status' => '0',
+                    'account' => null,
+    "address" => null));
+    }
+    
+  }
+
   public function createAction() {
 
     $validator = Validator::make(Input::all(), [

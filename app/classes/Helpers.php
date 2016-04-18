@@ -96,11 +96,13 @@ class Helpers {
   }
 
   public static function getParcelCost($min,$max,$type) {
+    if($min == $max)
+        $max = $max + 1;
   	$parcel = Parcel::where("min_kg",">",$min)->where("min_kg","<=",$max)->where("type",$type)->first();
     if($parcel)
     	return $parcel->price;
     else
-    	return 500;
+    	return 0;
   }
 
   public static function getNf($product) {
@@ -143,8 +145,9 @@ class Helpers {
     foreach($json as $k => $v) {
       if(Helpers::startsWith($k,"nf_") && !Helpers::startsWith($k,"nf_serving") && $v != null) {
         $aa = array();
-        $title = str_replace("nf", "", $k);
+        $title = str_replace("nf_", "", $k);
         $name = str_replace("_", " ", $title);
+        $name = str_replace("Total", "", $name);
         $title = ucwords(strtolower($name));
         $aa["title"] = ltrim($title);
         $aa["name"] = ltrim($name);
